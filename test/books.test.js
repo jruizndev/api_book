@@ -30,6 +30,28 @@ describe('CRUD Books', () => {
         expect(response.body.author).toBe(bookData.author) // Verifica que el autor coincida
         expect(response.body.description).toBe(bookData.description) // Verifica que la descripción coincida
     })
+    test('should delete a book', async () => {
+        // Paso 1: Crear un libro para luego eliminarlo
+        const bookData = {
+            title: 'Test title to delete',
+            author: 'Test author',
+            description: 'Test description',
+        }
+        const createResponse = await request(app).post('/books').send(bookData)
+        const bookId = createResponse.body.id // Asumiendo que la respuesta incluye el ID del libro creado
+
+        // Paso 2: Enviar solicitud DELETE para eliminar el libro
+        const deleteResponse = await request(app).delete(`/books/${bookId}`)
+
+        // Verificar que la respuesta tenga un código de estado 200
+        expect(deleteResponse.statusCode).toBe(200)
+        // Opcional: Verificar el cuerpo de la respuesta
+        expect(deleteResponse.body.message).toBe('Book deleted successfully')
+
+        // Paso adicional: Verificar que el libro haya sido eliminado
+        const getResponse = await request(app).get(`/books/${bookId}`)
+        expect(getResponse.statusCode).toBe(404) // O el código de estado que uses para indicar "No encontrado"
+    })
 })
 
 afterAll(() => {

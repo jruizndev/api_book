@@ -28,3 +28,21 @@ export const createBook = async (req, res) => {
         })
     }
 }
+
+export const deleteBook = async (req, res) => {
+    try {
+        const { id } = req.params
+        await bookModel.destroy({
+            where: {
+                id,
+            },
+        })
+        // Cambio aquí: enviar código 200 y un mensaje en el cuerpo de la respuesta
+        res.status(200).json({ message: 'Book deleted successfully' })
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error al eliminar el libro',
+            error: error.message,
+        })
+    }
+}
