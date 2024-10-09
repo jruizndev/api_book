@@ -8,7 +8,9 @@ import {
 const bookRouter = express.Router()
 
 bookRouter.get('/', getAllBooks)
+
 bookRouter.post('/', createBook)
+
 bookRouter.delete('/:id', deleteBook)
 
 export default bookRouter

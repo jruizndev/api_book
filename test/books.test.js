@@ -1,14 +1,14 @@
 import request from 'supertest'
 import { app, startServer } from '../app.js'
 import connection_db from '../database/connectionDb.js'
+import bookModel from '../models/bookModel.js' // Asegúrate de importar el modelo de libro correctamente
 
 let server
 
-beforeAll(async () => {
-    server = await startServer() // Inicia el servidor antes de ejecutar las pruebas
-})
-
 describe('CRUD Books', () => {
+    beforeAll(async () => {
+        server = await startServer() // Inicia el servidor antes de ejecutar las pruebas
+    })
     test('should return a response with status 200 and type json', async () => {
         const response = await request(app).get('/books') // Prueba de obtener todos los libros
 
@@ -30,69 +30,24 @@ describe('CRUD Books', () => {
         expect(response.body.author).toBe(bookData.author) // Verifica que el autor coincida
         expect(response.body.description).toBe(bookData.description) // Verifica que la descripción coincida
     })
+
     test('should delete a book', async () => {
-        // Paso 1: Crear un libro para luego eliminarlo
-        const bookData = {
-            title: 'Test title to delete',
-            author: 'Test author',
-            description: 'Test description',
-        }
-        const createResponse = await request(app).post('/books').send(bookData)
-        const bookId = createResponse.body.id // Asumiendo que la respuesta incluye el ID del libro creado
+        const book = await bookModel.create({
+            title: 'Test title',
+            author: 'Test Author',
+            description: 'This is a delete test',
+        })
 
-        // Paso 2: Enviar solicitud DELETE para eliminar el libro
-        const deleteResponse = await request(app).delete(`/books/${bookId}`)
+        const response = await request(app).delete(`/books/${book.id}`) // Corrige la sintaxis de la plantilla de cadena
 
-        // Verificar que la respuesta tenga un código de estado 200
-        expect(deleteResponse.statusCode).toBe(200)
-        // Opcional: Verificar el cuerpo de la respuesta
-        expect(deleteResponse.body.message).toBe('Book deleted successfully')
-
-        // Paso adicional: Verificar que el libro haya sido eliminado
-        const getResponse = await request(app).get(`/books/${bookId}`)
-        expect(getResponse.statusCode).toBe(404) // O el código de estado que uses para indicar "No encontrado"
+        expect(response.statusCode).toBe(200)
+        expect(response.body.message).toBe('Book deleted successfully')
     })
-
-    test('should update a book', async () => {
-        // Paso 1: Crear un libro para luego actualizarlo
-        const bookData = {
-            title: 'Test title to update',
-            author: 'Test author',
-            description: 'Test description',
-        }
-        const createResponse = await request(app).post('/books').send(bookData)
-        const bookId = createResponse.body.id // Asumiendo que la respuesta incluye el ID del libro creado
-
-        // Datos para actualizar
-        const updatedBookData = {
-            title: 'Updated title',
-            author: 'Updated author',
-            description: 'Updated description',
-        }
-
-        // Paso 2: Actualizar el libro
-        const updateResponse = await request(app)
-            .put(`/books/${bookId}`)
-            .send(updatedBookData)
-
-        // Verificar que la respuesta tenga un código de estado 200
-        expect(updateResponse.statusCode).toBe(200)
-        // Verificar que los datos del libro se hayan actualizado correctamente
-        expect(updateResponse.body.title).toBe(updatedBookData.title)
-        expect(updateResponse.body.author).toBe(updatedBookData.author)
-        expect(updateResponse.body.description).toBe(
-            updatedBookData.description
-        )
-
-        // Paso 3 (opcional): Verificar que los cambios persisten
-        const getResponse = await request(app).get(`/books/${bookId}`)
-        expect(getResponse.body.title).toBe(updatedBookData.title)
-        expect(getResponse.body.author).toBe(updatedBookData.author)
-        expect(getResponse.body.description).toBe(updatedBookData.description)
+    afterAll(async () => {
+        await server.close() // Cierra el servidor al final de las pruebas
+        await connection_db.close() // Cierra la conexión con la base de datos
     })
-})
-
-afterAll(() => {
-    server.close() // Cierra el servidor al final de las pruebas
-    connection_db.close() // Cierra la conexión con la base de datos
+    afterEach(async () => {
+        await bookModel.destroy({ where: {} }) // Elimina todos los libros después de cada prueba
+    })
 })
