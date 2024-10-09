@@ -1,25 +1,19 @@
-import connection_db from '../database/connectionDb.js'
 import { DataTypes } from 'sequelize'
+import sequelize from '../database/connectionDb.js'
 
-const bookModel = connection_db.define(
-    'Book',
-    {
-        title: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        author: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        description: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
+const Book = sequelize.define('Book', {
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false,
     },
-    {
-        timestamps: false, 
-    }
-)
+    author: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+})
 
-export default bookModel
+export default Book
